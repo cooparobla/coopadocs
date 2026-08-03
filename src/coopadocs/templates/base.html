@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ current_title }} - {{ project_name }} Documentation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <a href="index.html" class="logo">{{ project_name }} Docs</a>
+        </div>
+        
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="search-input" class="search-input" placeholder="Search symbols..." autocomplete="off">
+            <div id="search-results" class="search-results"></div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section-title">Modules / Namespaces</div>
+            <ul class="nav-list">
+                {% for sc in all_scopes %}
+                <li class="nav-item">
+                    <a class="nav-link {% if active_id == 'scope_' ~ sc.id %}active{% endif %}" href="{{ sc.url }}">
+                        <span class="badge">{{ sc.lang_badge }}</span>{{ sc.name }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+            
+            {% if all_classes %}
+            <div class="nav-section-title">Classes</div>
+            <ul class="nav-list">
+                {% for cl in all_classes %}
+                <li class="nav-item">
+                    <a class="nav-link {% if active_id == 'class_' ~ cl.id %}active{% endif %}" href="{{ cl.url }}">
+                        <span class="badge">{{ cl.lang_badge }}</span>{{ cl.name }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </nav>
+        
+        <div class="sidebar-footer">
+            <span style="font-size: 0.75rem; color: var(--text-muted);">coopadocs v0.1.0</span>
+            <button id="theme-toggle" class="theme-toggle" title="Toggle dark/light mode">🌙</button>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-wrapper">
+        <header class="header">
+            <div style="font-weight: 500; font-size: 0.9rem; color: var(--text-muted);">
+                Documentation &raquo; {{ current_title }}
+            </div>
+        </header>
+        
+        <main class="content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    
+    <script src="search.js"></script>
+    <script>
+        // Dark Mode Logic
+        const themeToggle = document.getElementById('theme-toggle');
+        const root = document.documentElement;
+        
+        // Check localStorage
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        root.setAttribute('data-theme', savedTheme);
+        themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+        
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = root.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            root.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        });
+    </script>
+</body>
+</html>

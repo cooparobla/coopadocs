@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block content %}
+<article>
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+        <span class="badge">{{ scope.lang_badge }}</span>
+        <span style="font-size: 0.875rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em;">
+            {{ scope.kind_label }}
+        </span>
+    </div>
+    
+    <h1>{{ scope.name }}</h1>
+    
+    {% if scope.file_path %}
+    <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 24px; font-family: var(--font-mono);">
+        Defined in: {{ scope.file_path }}
+    </div>
+    {% endif %}
+    
+    {% if scope.docstring %}
+    <div class="card docstring">
+        {{ scope.docstring }}
+    </div>
+    {% endif %}
+    
+    <!-- Subscopes -->
+    {% if scope.subscopes %}
+    <section>
+        <h2>Subscopes</h2>
+        <div class="card">
+            <ul style="list-style: none;">
+                {% for sub in scope.subscopes %}
+                <li style="margin-bottom: 12px;">
+                    <a href="{{ sub.url }}" style="font-weight: 600; font-size: 1.1rem;">{{ sub.name }}</a>
+                    <div style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;">
+                        {{ sub.docstring_summary | safe }}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- Classes -->
+    {% if scope.classes %}
+    <section>
+        <h2>Classes</h2>
+        {% for cl in scope.classes %}
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                <a href="{{ cl.url }}" style="font-size: 1.25rem; font-weight: 600; font-family: var(--font-display);">
+                    class {{ cl.name }}
+                </a>
+            </div>
+            <div style="color: var(--text-muted); font-size: 0.9rem;">
+                {{ cl.docstring_summary | safe }}
+            </div>
+        </div>
+        {% endfor %}
+    </section>
+    {% endif %}
+    
+    <!-- Functions -->
+    {% if scope.functions %}
+    <section>
+        <h2>Functions</h2>
+        {% for fn in scope.functions %}
+        <div class="card" id="func_{{ fn.name }}">
+            <h3 style="margin-top: 0; font-family: var(--font-mono);">{{ fn.name }}</h3>
+            
+            <div class="signature-panel">
+                {{ fn.signature | safe }}
+            </div>
+            
+            {% if fn.docstring %}
+            <div class="docstring" style="margin-top: 16px; margin-bottom: 16px;">
+                {{ fn.docstring }}
+            </div>
+            {% endif %}
+            
+            {% if fn.args %}
+            <h4 style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-top: 16px;">Parameters</h4>
+            <table class="params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for arg in fn.args %}
+                    <tr>
+                        <td class="param-name">{{ arg.name }}</td>
+                        <td class="param-type">{{ arg.type_str }}</td>
+                        <td class="param-type" style="color: var(--text-muted);">{{ arg.default_str }}</td>
+                        <td>{{ arg.description }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+            
+            {% if fn.return_type and fn.return_type != 'void' and fn.return_type != 'None' %}
+            <div style="margin-top: 16px; font-size: 0.9rem;">
+                <strong>Returns:</strong> <code style="color: var(--primary-color);">{{ fn.return_type }}</code>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </section>
+    {% endif %}
+</article>
+{% endblock %}

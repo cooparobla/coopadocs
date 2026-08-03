@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block content %}
+<article>
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+        <span class="badge">{{ cls.lang_badge }}</span>
+        <span style="font-size: 0.875rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em;">
+            class
+        </span>
+    </div>
+    
+    <h1>class {{ cls.name }}</h1>
+    
+    {% if cls.template_params %}
+    <div style="margin-bottom: 16px;">
+        <span style="font-weight: 600; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Templates:</span>
+        {% for p in cls.template_params %}
+        <code style="color: var(--primary-color);">{{ p }}</code>{% if not loop.last %}, {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    {% if cls.parents %}
+    <div style="margin-bottom: 16px;">
+        <span style="font-weight: 600; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Inherits:</span>
+        {% for base in cls.parents %}
+        <code>{{ base }}</code>{% if not loop.last %}, {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    {% if cls.file_path %}
+    <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 24px; font-family: var(--font-mono);">
+        Defined in: {{ cls.file_path }}
+    </div>
+    {% endif %}
+    
+    {% if cls.docstring %}
+    <div class="card docstring">
+        {{ cls.docstring }}
+    </div>
+    {% endif %}
+    
+    <!-- Constructors -->
+    {% set ctors = cls.methods | selectattr("kind", "equalto", "constructor") | list %}
+    {% if ctors %}
+    <section>
+        <h2>Constructors</h2>
+        {% for fn in ctors %}
+        <div class="card" id="ctor_{{ fn.name }}">
+            <h3 style="margin-top: 0; font-family: var(--font-mono);">{{ fn.name }}</h3>
+            
+            <div class="signature-panel">
+                {{ fn.signature | safe }}
+            </div>
+            
+            {% if fn.docstring %}
+            <div class="docstring" style="margin-top: 16px; margin-bottom: 16px;">
+                {{ fn.docstring }}
+            </div>
+            {% endif %}
+            
+            {% if fn.args %}
+            <h4 style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-top: 16px;">Parameters</h4>
+            <table class="params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for arg in fn.args %}
+                    <tr>
+                        <td class="param-name">{{ arg.name }}</td>
+                        <td class="param-type">{{ arg.type_str }}</td>
+                        <td class="param-type" style="color: var(--text-muted);">{{ arg.default_str }}</td>
+                        <td>{{ arg.description }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </section>
+    {% endif %}
+    
+    <!-- Methods -->
+    {% set methods = cls.methods | rejectattr("kind", "equalto", "constructor") | list %}
+    {% if methods %}
+    <section>
+        <h2>Methods</h2>
+        {% for fn in methods %}
+        <div class="card" id="method_{{ fn.name }}">
+            <h3 style="margin-top: 0; font-family: var(--font-mono);">
+                {% if fn.is_static %}<span class="badge" style="background-color: var(--border-color); color: var(--text-main);">static</span> {% endif %}
+                {% if fn.is_const %}<span class="badge" style="background-color: var(--border-color); color: var(--text-main);">const</span> {% endif %}
+                {{ fn.name }}
+            </h3>
+            
+            <div class="signature-panel">
+                {{ fn.signature | safe }}
+            </div>
+            
+            {% if fn.docstring %}
+            <div class="docstring" style="margin-top: 16px; margin-bottom: 16px;">
+                {{ fn.docstring }}
+            </div>
+            {% endif %}
+            
+            {% if fn.args %}
+            <h4 style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-top: 16px;">Parameters</h4>
+            <table class="params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for arg in fn.args %}
+                    <tr>
+                        <td class="param-name">{{ arg.name }}</td>
+                        <td class="param-type">{{ arg.type_str }}</td>
+                        <td class="param-type" style="color: var(--text-muted);">{{ arg.default_str }}</td>
+                        <td>{{ arg.description }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+            
+            {% if fn.return_type and fn.return_type != 'void' and fn.return_type != 'None' %}
+            <div style="margin-top: 16px; font-size: 0.9rem;">
+                <strong>Returns:</strong> <code style="color: var(--primary-color);">{{ fn.return_type }}</code>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </section>
+    {% endif %}
+    
+    <!-- Members -->
+    {% if cls.members %}
+    <section>
+        <h2>Attributes / Member Variables</h2>
+        <div class="card" style="padding: 0; overflow-x: auto;">
+            <table class="params-table" style="margin: 0;">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in cls.members %}
+                    <tr>
+                        <td class="param-name">{{ m.name }}</td>
+                        <td class="param-type">{{ m.type_str }}</td>
+                        <td class="param-type" style="color: var(--text-muted);">{{ m.default_str }}</td>
+                        <td>{{ m.docstring | safe }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+</article>
+{% endblock %}

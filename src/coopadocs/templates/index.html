@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<article>
+    <h1 style="font-size: 3rem; margin-bottom: 24px;">{{ project_name }} Documentation</h1>
+    
+    <div class="card" style="background: var(--primary-gradient); color: white; border: none; padding: 32px; border-radius: 16px;">
+        <p style="font-size: 1.25rem; line-height: 1.6; color: rgba(255,255,255,0.9); margin-bottom: 24px;">
+            Welcome to the unified API documentation for <strong>{{ project_name }}</strong>. 
+            This documentation provides a uniform interface to browse, search, and inspect classes, methods, and functions across Python and C++ source code.
+        </p>
+        
+        <div>
+            <span style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 8px; color: rgba(255,255,255,0.7);">
+                Detected Languages
+            </span>
+            {% for lang in languages %}
+            <span class="badge" style="background-color: rgba(255,255,255,0.25); color: white; font-size: 0.8rem; padding: 4px 12px;">
+                {{ lang }}
+            </span>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div style="margin-top: 40px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+        <div class="card">
+            <h3 style="margin-top: 0; font-family: var(--font-display); font-size: 1.5rem;">API Modules &amp; Namespaces</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+                Browse packages, namespaces, subscopes, and global namespace functions.
+            </p>
+            <ul style="list-style: none;">
+                {% for sc in all_scopes %}
+                <li style="margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                    <a href="{{ sc.url }}" style="font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                        <span class="badge" style="font-size: 0.7rem; padding: 1px 6px;">{{ sc.lang_badge }}</span>
+                        {{ sc.name }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        
+        {% if all_classes %}
+        <div class="card">
+            <h3 style="margin-top: 0; font-family: var(--font-display); font-size: 1.5rem;">Class Index</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+                Explore structures, templates, methods, attributes, and inheritance hierarchies.
+            </p>
+            <ul style="list-style: none;">
+                {% for cl in all_classes %}
+                <li style="margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                    <a href="{{ cl.url }}" style="font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                        <span class="badge" style="font-size: 0.7rem; padding: 1px 6px;">{{ cl.lang_badge }}</span>
+                        {{ cl.name }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</article>
+{% endblock %}
