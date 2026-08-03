@@ -23,8 +23,11 @@ def main():
     help="Output directory (defaults to <repo_path>/.docs)"
 )
 def build(repo_path: Path, output: Path):
-    """
-    Generate uniform API documentation for Python and C++ files in REPO_PATH.
+    """Generate uniform API documentation for Python and C++ files.
+
+    Args:
+        repo_path: Path to the repository directory to scan.
+        output: Custom output directory for the built documentation.
     """
     repo_path = repo_path.resolve()
     
@@ -87,8 +90,11 @@ def build(repo_path: Path, output: Path):
     help="Output directory (defaults to <repo_path>/.docs)"
 )
 def show(repo_path: Path, output: Path):
-    """
-    Open the generated docs in Google Chrome.
+    """Open the generated documentation in Chrome.
+
+    Args:
+        repo_path: Path to the repository directory to locate documentation.
+        output: Custom output directory where documentation was built.
     """
     repo_path = repo_path.resolve()
     

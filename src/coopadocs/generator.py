@@ -94,6 +94,7 @@ def decorate_scopes_and_classes(scopes: List[Scope]) -> Tuple[List[Dict], List[D
                     "file_path": c.file_path,
                     "methods": [],
                     "members": c.members,
+                    "communicates_with": c.communicates_with,
                     "raw_class": c
                 }
                 flat_classes.append(decorated_class)
@@ -141,6 +142,45 @@ def decorate_scopes_and_classes(scopes: List[Scope]) -> Tuple[List[Dict], List[D
     recurse(scopes)
     return flat_scopes, flat_classes, search_items
 
+def build_project_mermaid_graph(flat_classes: List[Dict]) -> str:
+    """Builds a project-level class dependency diagram using Mermaid.js."""
+    lines = ["graph TD"]
+    edges = set()
+    for cl in flat_classes:
+        name = cl["name"]
+        for target in cl.get("resolved_communicates", []):
+            edges.add(f"    {name} --> {target}")
+            
+    if not edges:
+        return ""
+        
+    lines.extend(sorted(list(edges)))
+    return "\n".join(lines)
+
+def build_class_mermaid_graph(cls_name: str, flat_classes: List[Dict]) -> str:
+    """Builds a class-focused Mermaid graph showing incoming and outgoing communications."""
+    lines = ["graph LR"]
+    edges = set()
+    
+    # Outgoing
+    target_cls = next((c for c in flat_classes if c["name"] == cls_name), None)
+    if target_cls:
+        for target in target_cls.get("resolved_communicates", []):
+            edges.add(f"    {cls_name} --> {target}")
+            
+    # Incoming
+    for cl in flat_classes:
+        if cl["name"] != cls_name:
+            for target in cl.get("resolved_communicates", []):
+                if target == cls_name:
+                    edges.add(f"    {cl['name']} --> {cls_name}")
+                    
+    if not edges:
+        return ""
+        
+    lines.extend(sorted(list(edges)))
+    return "\n".join(lines)
+
 def generate_docs(project: Project, output_dir: Path) -> None:
     """Renders the HTML documentation site into the output directory."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -157,6 +197,23 @@ def generate_docs(project: Project, output_dir: Path) -> None:
     # Flatten and decorate
     flat_scopes, flat_classes, search_items = decorate_scopes_and_classes(project.scopes)
     
+    # Filter communicates_with to only include defined classes
+    defined_class_names = {cl["name"] for cl in flat_classes}
+    for cl in flat_classes:
+        raw_comms = cl.get("communicates_with", [])
+        filtered_comms = [
+            target for target in raw_comms
+            if target in defined_class_names and target != cl["name"]
+        ]
+        cl["resolved_communicates"] = sorted(list(set(filtered_comms)))
+        
+    # Build project level mermaid graph
+    project_mermaid = build_project_mermaid_graph(flat_classes)
+    
+    # Build class level mermaid graphs
+    for cl in flat_classes:
+        cl["mermaid_graph"] = build_class_mermaid_graph(cl["name"], flat_classes)
+        
     # Save search index
     with open(output_dir / "search_index.json", "w", encoding="utf-8") as f:
         json.dump(search_items, f, indent=2)
@@ -167,7 +224,8 @@ def generate_docs(project: Project, output_dir: Path) -> None:
         "project_name": project.name,
         "languages": project.languages,
         "all_scopes": flat_scopes,
-        "all_classes": flat_classes
+        "all_classes": flat_classes,
+        "project_mermaid": project_mermaid
     }
     
     # 1. Render index.html landing page

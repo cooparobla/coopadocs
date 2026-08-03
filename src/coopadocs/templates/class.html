@@ -41,6 +41,17 @@
     </div>
     {% endif %}
     
+    {% if cls.mermaid_graph %}
+    <section>
+        <h2>Class Relationships</h2>
+        <div class="card mermaid-container" style="padding: 24px; display: flex; justify-content: center; align-items: center; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; position: relative; height: 400px;">
+            <div class="mermaid">
+                {{ cls.mermaid_graph }}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+    
     <!-- Constructors -->
     {% set ctors = cls.methods | selectattr("kind", "equalto", "constructor") | list %}
     {% if ctors %}

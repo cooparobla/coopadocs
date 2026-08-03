@@ -164,3 +164,29 @@ def test_coopadocs_config():
         
         assert len(py_files) == 1
         assert py_files[0].name == "file1.py"
+
+def test_class_communication_extraction():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_path = Path(temp_dir)
+        py_file = temp_path / "comms_test.py"
+        py_file.write_text('''
+class HelperClass:
+    pass
+
+class MainClass:
+    def execute(self, helper: HelperClass):
+        instance = HelperClass()
+''')
+        scope = parse_python_file(py_file, temp_path)
+        assert len(scope.classes) == 2
+        
+        main_cls = next(c for c in scope.classes if c.name == "MainClass")
+        helper_cls = next(c for c in scope.classes if c.name == "HelperClass")
+        
+        # MainClass should communicate with HelperClass
+        assert "HelperClass" in main_cls.communicates_with
+        
+        # The execute method should communicate with HelperClass
+        exec_method = next(m for m in main_cls.methods if m.name == "execute")
+        assert "HelperClass" in exec_method.communicates_with
+

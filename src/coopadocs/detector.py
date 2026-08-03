@@ -8,10 +8,14 @@ EXCLUDE_DIRS = {
 }
 
 def scan_repo(repo_path: Path) -> Tuple[List[Path], List[Path]]:
-    """
-    Scans repository for Python and C++ source files, respecting .coopadocs config if present.
+    """Scan the repository for Python and C++ source files, respecting .coopadocs config.
+
+    Args:
+        repo_path: Path to the target repository directory.
+
     Returns:
-        (python_files, cpp_files)
+        Tuple[List[Path], List[Path]]: A tuple containing a list of Python files
+        and a list of C++ files found in the repository.
     """
     config = {}
     config_files = [".coopadocs", ".coopadocs.yaml", ".coopadocs.yml"]

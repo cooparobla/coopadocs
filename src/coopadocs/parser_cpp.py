@@ -156,6 +156,11 @@ def parse_cpp_member(member_def: ET.Element, class_name: Optional[str] = None) -
         if class_name and name == class_name:
             func_kind = "constructor"
             
+        references = []
+        for ref in member_def.findall("references"):
+            if ref.text:
+                references.append(ref.text)
+
         return Function(
             name=name,
             kind=func_kind,
@@ -164,7 +169,8 @@ def parse_cpp_member(member_def: ET.Element, class_name: Optional[str] = None) -
             return_type=ret_type,
             signature=highlight_code(sig, "cpp"),
             is_static=is_static,
-            is_const=is_const
+            is_const=is_const,
+            communicates_with=references
         ), None
         
     elif kind in ("variable", "typedef", "enum"):
@@ -253,14 +259,28 @@ def parse_cpp_xml(xml_dir: Path) -> List[Scope]:
             )
             
             # Parse members/methods inside class
+            class_deps = set()
             for section in compounddef.findall("sectiondef"):
                 for memberdef in section.findall("memberdef"):
                     func, memb = parse_cpp_member(memberdef, class_name=name)
                     if func:
                         cls.methods.append(func)
+                        for dep in func.communicates_with:
+                            class_deps.add(dep)
                     if memb:
                         cls.members.append(memb)
                         
+            resolved_deps = set()
+            for dep in class_deps:
+                if "::" in dep:
+                    for part in dep.split("::"):
+                        resolved_deps.add(part)
+                else:
+                    resolved_deps.add(dep)
+            if name in resolved_deps:
+                resolved_deps.remove(name)
+            cls.communicates_with = sorted(list(resolved_deps))
+            
             classes_map[refid] = cls
             
     # Pass 2: Map child structures to their parent scopes or resolve namespace tree
@@ -403,6 +423,8 @@ def parse_cpp(repo_path: Path) -> List[Scope]:
             f.write("EXTRACT_STATIC = YES\n")
             f.write("QUIET = YES\n")
             f.write("WARNINGS = NO\n")
+            f.write("REFERENCES_RELATION = YES\n")
+            f.write("REFERENCED_BY_RELATION = YES\n")
             f.write("FILE_PATTERNS = *.h *.hpp *.cpp *.cc *.cxx *.c\n")
             
         print(f"Running doxygen parser in {temp_path}...")
